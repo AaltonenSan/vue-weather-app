@@ -1,35 +1,42 @@
 <script lang="ts">
-import type { LocationResponse } from '../../types/LocationResponse'
 import type { CurrentWeatherResponse } from '../../types/CurrentWeatherResponse'
-const API_KEY = import.meta.env.VITE_API_KEY as string
+import Card from 'primevue/card';
 
 export default {
+  components: {
+    Card
+  },
   props: {
-    location: {}
-  },
-  data() {
-    return {
-      BASE_URL: 'https://api.openweathermap.org',
-      currentWeather: {} as CurrentWeatherResponse,
-      newLocation: {}
+    currentWeather: {
+      type: Object as () => CurrentWeatherResponse,
+      required: true
     }
   },
-  methods: {
-    async fetchWeather(location: LocationResponse): Promise<void> {
-      const response = await fetch(`${this.BASE_URL}/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${API_KEY}&units=metric`)
-      const data: CurrentWeatherResponse = await response.json()
-      this.currentWeather = data
-    }
-  }
 }
 </script>
 
 <template>
-  <div v-if="Object.keys(currentWeather).length">
-    <p>{{ currentWeather.main.temp }}</p>
-    <img :src="`https://openweathermap.org/img/wn/${currentWeather.weather[0].icon}@2x.png`"
-      :alt="`${currentWeather.weather[0].description}`">
+  <div v-if="Object.keys(currentWeather).length" class="current-weather">
+    <div style="text-align:center">
+      <h1>Current weather in {{ currentWeather.name }}</h1>
+      <h3>{{ new Date().toLocaleTimeString() }}</h3>
+    </div>
+    <Card style="width: 15em">
+      <template #header> <img :src="`https://openweathermap.org/img/wn/${currentWeather.weather[0].icon}@2x.png`"
+          :alt="`${currentWeather.weather[0].description}`" style="height:200px, width: 100px">
+      </template>
+      <template #content>
+        <p>{{ currentWeather.main.temp }}</p>
+      </template>
+    </Card>
   </div>
 </template>
 
-<style></style>
+<style>
+.current-weather {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+</style>
