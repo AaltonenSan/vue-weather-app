@@ -22,3 +22,8 @@ export interface LocalNames {
   mk: string;
   sv: string;
 }
+
+export interface LocationCoordinates {
+  lat: number;
+  lon: number;
+}

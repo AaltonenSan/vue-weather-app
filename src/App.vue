@@ -1,13 +1,16 @@
 <script lang="ts">
-import type { LocationResponse } from '../types/LocationResponse'
-import type { CurrentWeatherResponse } from '../types/CurrentWeatherResponse'
-import CurrentWeather from './components/CurrentWeather.vue'
+import { defineComponent } from 'vue';
+import type { LocationCoordinates, LocationResponse } from '../types/LocationResponse'
+import type { TimeOfDay } from '../types/TimeOfDay'
+import Weather from './components/Weather.vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import DAY from './assets/clouds-bg.jpg'
+import NIGHT from './assets/night.jpg'
 
-export default {
+export default defineComponent({
   components: {
-    CurrentWeather,
+    Weather,
     InputText,
     Button,
   },
@@ -15,24 +18,15 @@ export default {
     return {
       API_KEY: import.meta.env.VITE_API_KEY as string,
       BASE_URL: 'https://api.openweathermap.org',
-      currentWeather: {} as CurrentWeatherResponse,
+      location: null as LocationCoordinates | null,
       city: '',
-      message: '',
-      loading: false
+      message: 'Enable location or search for a city to see weather forecast',
+      loading: false,
+      timeOfDay: 'day' as TimeOfDay
     }
   },
   methods: {
-    async fetchWeather(location: LocationResponse): Promise<void> {
-      try {
-        const response = await fetch(`${this.BASE_URL}/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${this.API_KEY}&units=metric`)
-        const data: CurrentWeatherResponse = await response.json()
-        this.currentWeather = data
-        this.loading = false
-      } catch (error) {
-        console.log(error)
-        this.message = 'Error fetching data'
-      }
-    },
+    // fetch location coordinates after user gives city name
     async fetchLocation(): Promise<void> {
       this.loading = true
       try {
@@ -40,38 +34,94 @@ export default {
         const data: LocationResponse[] = await response.json()
         if (!data.length) {
           this.message = 'City not found'
+          this.location = null
           this.loading = false
           return
         }
         this.message = ''
-        this.fetchWeather(data[0])
+        this.city = ''
+        this.location = { lat: data[0].lat, lon: data[0].lon }
       } catch (error) {
         console.log(error)
         this.message = 'Error fetching data'
       }
     },
+    changeTimeOfDay(timeofDay: TimeOfDay) {
+      this.timeOfDay = timeofDay
+    },
+    getGeoLocation(source?: string) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          this.location = { lat: position.coords.latitude, lon: position.coords.longitude }
+          this.message = ''
+        }, (error) => {
+          if (error.code === error.PERMISSION_DENIED && source === 'click') {
+            alert('Enable location to use this feature')
+          }
+        })
+      } else {
+        this.message = ' Location not available'
+        console.log('Geolocation not available')
+      }
+    }
   },
-}
+  computed: {
+    backgroundImage(): string {
+      return this.timeOfDay === 'day' ? DAY : NIGHT
+    },
+    searchbarColor(): string {
+      return this.timeOfDay === 'day' ? 'rgba(95,190,215,0.4)' : 'rgba(54,56,42,0.8)'
+    }
+  },
+  created() {
+    this.getGeoLocation()
+  }
+})
 </script>
 
 <template>
-  <main>
-    <div class="search-bar">
-      <InputText class="search-input" type="text" v-model="city" />
+  <main v-bind:style="{ backgroundImage: `url('${backgroundImage}')` }">
+    <div class="search-bar" v-bind:style="{ backgroundColor: searchbarColor }">
+      <span class="p-input-icon-left">
+        <i class="pi pi-map-marker" @click="getGeoLocation('click')" title="Get current location" />
+        <InputText class="search-input" type="text" v-model="city" @keydown.enter="fetchLocation" />
+      </span>
       <Button class="search-button" type="button" label="Search" icon="pi pi-search" @click="fetchLocation"
         :loading="loading" :disabled="city.length === 0" />
     </div>
-    <CurrentWeather :currentWeather="currentWeather" />
-    <p>{{ message }}</p>
+    <div class="weather-container" v-if="location">
+      <Weather :location="location" @loading="loading = $event" @change-time-of-day="timeOfDay = $event" />
+    </div>
+    <h1>{{ message }}</h1>
   </main>
 </template>
 
 <style scoped>
+main {
+  height: 100vh;
+  text-align: center;
+  background-size: cover;
+  background-position: top;
+}
+
+.weather-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.pi-map-marker) {
+  font-size: 1.3rem;
+}
+
+:deep(.pi-map-marker):hover {
+  cursor: pointer;
+}
+
 .search-bar {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: lightskyblue;
   padding: 1rem
 }
 

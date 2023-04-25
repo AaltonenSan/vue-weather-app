@@ -1,0 +1,1 @@
+export type TimeOfDay = 'sunrise' | 'day' | 'sunset' | 'night'

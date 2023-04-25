@@ -10,6 +10,7 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "mitt": "^3.0.0",
     "primeicons": "^6.0.1",
     "primevue": "^3.26.1",
     "vue": "^3.2.47",
