@@ -7,6 +7,7 @@ import type { PropType } from 'vue';
 import SelectButton from 'primevue/selectbutton';
 import DailyForecast from './DailyForecast.vue';
 import emitter from '../../utils/emitter';
+import { DateTime } from 'luxon'
 
 export default defineComponent({
   components: {
@@ -24,7 +25,7 @@ export default defineComponent({
     return {
       API_KEY: import.meta.env.VITE_API_KEY as string,
       BASE_URL: 'https://api.openweathermap.org',
-      forecast: {} as ForecastResponse,
+      forecast: null as ForecastResponse | null,
       forecastLength: '12 hours',
       forecastLengthOptions: ['12 hours', '5 days']
     }
@@ -36,6 +37,7 @@ export default defineComponent({
         const response = await fetch(`${this.BASE_URL}/data/2.5/forecast?lat=${location.lat}&lon=${location.lon}&appid=${this.API_KEY}&units=metric&d`)
         const data = await response.json()
         this.forecast = data
+        console.log(data)
       } catch (error) {
         console.log(error)
       }
@@ -76,10 +78,30 @@ export default defineComponent({
 }
 
 .forecast-card {
-  height: 420px;
-  width: 40em;
+  height: 430px;
+  max-width: 100%;
   padding-top: 25px;
   border-radius: 0 10px 10px 0;
   background-color: rgba(255, 255, 255, .8);
+}
+
+@media (max-width: 768px) {
+  .forecast-card {
+    border-radius: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+}
+
+@media (max-width: 620px) {
+  .forecast-card {
+    height: 660px;
+  }
+}
+
+@media (max-width: 520px) {
+  .forecast-card {
+    height: 980px
+  }
 }
 </style>

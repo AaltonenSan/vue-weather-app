@@ -5,7 +5,7 @@ import Card from 'primevue/card';
 import { defineComponent } from 'vue';
 import type { PropType } from 'vue';
 import emitter from '../../utils/emitter'
-
+import { DateTime } from 'luxon';
 
 export default defineComponent({
   components: {
@@ -25,7 +25,8 @@ export default defineComponent({
       localdate: {
         time: '',
         day: ''
-      }
+      },
+      timezonename: ''
     }
   },
   methods: {
@@ -35,9 +36,8 @@ export default defineComponent({
         const data: CurrentWeatherResponse = await response.json()
         this.currentWeather = data
         this.$emit('weather-loaded') // emit to Weather that loading is done
-        this.setLocalTime()
         this.changeBackgroundImage()
-        emitter.emit('timezone', this.currentWeather.timezone)
+        console.log(data)
       } catch (error) {
         console.log(error)
       }
@@ -47,22 +47,25 @@ export default defineComponent({
       this.$emit('change-time-of-day', timeOfDay)
     },
     setLocalTime() {
-      const localTime = new Date().getTime()
-      console.log(this.currentWeather.timezone)
-      const localOffset = new Date().getTimezoneOffset() * 60000
-      const currentUtcTime = localOffset + localTime
-      const cityOffset = currentUtcTime + 1000 * this.currentWeather.timezone
-      const cityDate = new Date(cityOffset).toString().split(' ')
-      this.localdate.time = cityDate[4]
-      this.localdate.day = cityDate.slice(0, 3).join(' ')
+      const localDate = DateTime.fromSeconds(this.currentWeather.dt, { zone: 'utc' })
+      const localDay = localDate.setZone(this.timezonename).toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)
+      const localTime = localDate.setZone(this.timezonename).toLocaleString(DateTime.TIME_24_WITH_SECONDS)
+      this.localdate.day = localDay
+      this.localdate.time = localTime
     }
   },
   watch: {
     location: {
       handler: 'fetchWeather',
       immediate: true
+    },
+    timezonename: {
+      handler: 'setLocalTime'
     }
-  }
+  },
+  created() {
+    emitter.on('timezonename', e => this.timezonename = e);
+  },
 })
 </script>
 
@@ -74,15 +77,15 @@ export default defineComponent({
         <p>{{ localdate.day }} {{ localdate.time }}</p>
       </template>
       <template #title>
-        {{ currentWeather.main.temp }} °C
+        {{ currentWeather.main.temp.toFixed(1) }} °C
         <img :src="`https://openweathermap.org/img/wn/${currentWeather.weather[0].icon}@2x.png`"
           :alt="`${currentWeather.weather[0].description}`" style="height:50px, width: 50px; padding: 0">
       </template>
       <template #subtitle>
         <p>{{ currentWeather.weather[0].description }}</p>
       </template>
-      <template #content>
-        <i class="pi pi-user" /> {{ currentWeather.main.feels_like }} °C <br>
+      <template #footer>
+        <i class="pi pi-user" /> {{ currentWeather.main.feels_like.toFixed(1) }} °C <br>
         <i class="pi pi-flag" /> {{ currentWeather.wind.speed }} m/s
       </template>
     </Card>
@@ -92,13 +95,16 @@ export default defineComponent({
 <style scoped>
 .current-weather-container {
   display: flex;
+  max-width: 15em;
+  width: 100%;
   flex-direction: row;
   text-align: center;
 }
 
 .weather-card {
-  height: 420px;
-  width: 20em;
+  height: 430px;
+  width: 100%;
+  position: sticky;
   border-radius: 10px 0 0 10px;
   background-color: rgba(255, 255, 255, .8);
 }
@@ -111,5 +117,16 @@ export default defineComponent({
 
 :deep(.p-card-content) {
   padding: 0
+}
+
+@media (max-width: 768px) {
+  .weather-card {
+    border-radius: 10px;
+  }
+
+  .current-weather-container {
+    border-radius: 10px;
+    max-width: 300px
+  }
 }
 </style>

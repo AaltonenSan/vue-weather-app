@@ -1,7 +1,7 @@
 import mitt from 'mitt'
 
 type Events = {
-  timezone: number;
+  timezonename: string;
   forecastLength: string;
 }
 

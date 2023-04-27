@@ -1,12 +1,14 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import type { LocationCoordinates, LocationResponse } from '../types/LocationResponse'
+import type { TimezoneDBResponse } from '../types/TimezoneDBResponse'
 import type { TimeOfDay } from '../types/TimeOfDay'
 import Weather from './components/Weather.vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import DAY from './assets/clouds-bg.jpg'
 import NIGHT from './assets/night.jpg'
+import emitter from '../utils/emitter';
 
 export default defineComponent({
   components: {
@@ -17,6 +19,7 @@ export default defineComponent({
   data() {
     return {
       API_KEY: import.meta.env.VITE_API_KEY as string,
+      TIMEZONE_API_KEY: import.meta.env.VITE_TIMEZONE_API_KEY as string,
       BASE_URL: 'https://api.openweathermap.org',
       location: null as LocationCoordinates | null,
       city: '',
@@ -32,6 +35,7 @@ export default defineComponent({
       try {
         const response = await fetch(`${this.BASE_URL}/geo/1.0/direct?q=${this.city}&limit=1&appid=${this.API_KEY}`)
         const data: LocationResponse[] = await response.json()
+
         if (!data.length) {
           this.message = 'City not found'
           this.location = null
@@ -41,9 +45,19 @@ export default defineComponent({
         this.message = ''
         this.city = ''
         this.location = { lat: data[0].lat, lon: data[0].lon }
+        this.fetchTimezone()
       } catch (error) {
         console.log(error)
         this.message = 'Error fetching data'
+      }
+    },
+    async fetchTimezone(): Promise<void> {
+      try {
+        const response = await fetch(`http://api.timezonedb.com/v2.1/get-time-zone?key=${this.TIMEZONE_API_KEY}&format=json&by=position&lat=${this.location?.lat}&lng=${this.location?.lon}`)
+        const data: TimezoneDBResponse = await response.json()
+        emitter.emit('timezonename', data.zoneName)
+      } catch (error) {
+        console.log(error)
       }
     },
     changeTimeOfDay(timeofDay: TimeOfDay) {
@@ -54,6 +68,7 @@ export default defineComponent({
         navigator.geolocation.getCurrentPosition((position) => {
           this.location = { lat: position.coords.latitude, lon: position.coords.longitude }
           this.message = ''
+          this.fetchTimezone()
         }, (error) => {
           if (error.code === error.PERMISSION_DENIED && source === 'click') {
             alert('Enable location to use this feature')
@@ -75,6 +90,11 @@ export default defineComponent({
   },
   created() {
     this.getGeoLocation()
+  },
+  watch: {
+    location: {
+      handler: "fetchTimezone"
+    }
   }
 })
 </script>
@@ -98,10 +118,12 @@ export default defineComponent({
 
 <style scoped>
 main {
-  height: 100vh;
+  height: 100%;
+  min-height: 100vh;
   text-align: center;
   background-size: cover;
   background-position: top;
+  overflow: scroll
 }
 
 .weather-container {
