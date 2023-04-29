@@ -26,4 +26,5 @@ export interface LocalNames {
 export interface LocationCoordinates {
   lat: number;
   lon: number;
+  cityName?: string;
 }

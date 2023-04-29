@@ -5,7 +5,6 @@ import CurrentWeather from './CurrentWeather.vue';
 import Forecast from './Forecast.vue';
 import type { LocationCoordinates } from 'types/LocationResponse';
 import Card from 'primevue/card';
-import type { TimeOfDay } from 'types/TimeOfDay';
 
 export default defineComponent({
   components: {
@@ -18,21 +17,13 @@ export default defineComponent({
       type: Object as PropType<LocationCoordinates>,
       required: true
     }
-  },
-  methods: {
-    onWeatherLoaded() {
-      this.$emit('loading', false) // update loading state when child emits the event
-    },
-    onTimeOfDay(timeOfDay: TimeOfDay) {
-      this.$emit('change-time-of-day', timeOfDay)
-    },
   }
 })
 </script>
 
 <template>
   <div class="weather">
-    <CurrentWeather :location="location" @weather-loaded="onWeatherLoaded" @change-time-of-day="onTimeOfDay" />
+    <CurrentWeather :location="location" />
     <Forecast :location="location" />
   </div>
 </template>
@@ -44,9 +35,11 @@ export default defineComponent({
   justify-content: center;
   align-items: center;
   margin-top: 20px;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 820px) {
   .weather {
     flex-wrap: wrap;
   }

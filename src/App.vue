@@ -42,9 +42,10 @@ export default defineComponent({
           this.loading = false
           return
         }
+        console.log(data)
         this.message = ''
         this.city = ''
-        this.location = { lat: data[0].lat, lon: data[0].lon }
+        this.location = { lat: data[0].lat, lon: data[0].lon, cityName: data[0].name }
         this.fetchTimezone()
       } catch (error) {
         console.log(error)
@@ -71,7 +72,7 @@ export default defineComponent({
           this.fetchTimezone()
         }, (error) => {
           if (error.code === error.PERMISSION_DENIED && source === 'click') {
-            alert('Enable location to use this feature')
+            alert(error)
           }
         })
       } else {
@@ -90,6 +91,8 @@ export default defineComponent({
   },
   created() {
     this.getGeoLocation()
+    emitter.on('noWeather', e => this.message = e)
+    emitter.on('loading', e => this.loading = e)
   },
   watch: {
     location: {
@@ -109,10 +112,10 @@ export default defineComponent({
       <Button class="search-button" type="button" label="Search" icon="pi pi-search" @click="fetchLocation"
         :loading="loading" :disabled="city.length === 0" />
     </div>
-    <div class="weather-container" v-if="location">
-      <Weather :location="location" @loading="loading = $event" @change-time-of-day="timeOfDay = $event" />
+    <div class="weather-container" v-if="location && !message">
+      <Weather :location="location" />
     </div>
-    <h1>{{ message }}</h1>
+    <h1 v-else>{{ message }}</h1>
   </main>
 </template>
 
@@ -124,20 +127,6 @@ main {
   background-size: cover;
   background-position: top;
   overflow: scroll
-}
-
-.weather-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-:deep(.pi-map-marker) {
-  font-size: 1.3rem;
-}
-
-:deep(.pi-map-marker):hover {
-  cursor: pointer;
 }
 
 .search-bar {
@@ -155,5 +144,25 @@ main {
 .search-button {
   border-radius: 10px;
   margin-left: 5px;
+}
+
+.weather-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.pi-map-marker) {
+  font-size: 1.3rem;
+}
+
+:deep(.pi-map-marker):hover {
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .search-input {
+    width: 200px;
+  }
 }
 </style>

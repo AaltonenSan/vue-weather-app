@@ -19,7 +19,8 @@ export default defineComponent({
     return {
       forecastLength: '12 hours',
       timezonename: '',
-      TIMEZONE_API_KEY: import.meta.env.VITE_TIMEZONE_API_KEY as string
+      TIMEZONE_API_KEY: import.meta.env.VITE_TIMEZONE_API_KEY as string,
+      backgroundcolor: 'blue'
     }
   },
   computed: {
@@ -65,7 +66,7 @@ export default defineComponent({
 
 <template>
   <div class="forecast-cards-container">
-    <Card class="forecast-card" v-for="forecast in dailyForecast">
+    <Card class="forecast-card" v-for="forecast in  dailyForecast ">
       <template #title>
         {{ forecast.localDay }}
         {{ forecastLength === '12 hours' ? forecast.localTime : null }}
@@ -76,8 +77,10 @@ export default defineComponent({
         {{ forecast.weather[0].description }}
       </template>
       <template #content>
+        <p>Max:</p>
+        <p>Min:</p>
         <p style="font-weight: bold">{{ forecast.main.temp.toFixed(1) }} °C</p>
-        <i class="pi pi-flag" /> {{ forecast.wind.speed }} m/s
+        {{ forecast.wind.speed }} m/s
       </template>
     </Card>
   </div>
@@ -92,24 +95,8 @@ export default defineComponent({
   align-items: center;
 }
 
-@media (max-width: 620px) {
-  .forecast-cards-container {
-    flex-wrap: wrap;
-    border-radius: 10px;
-    margin-left: 10px;
-    margin-right: 10px;
-  }
-}
-
-p {
-  margin: 0
-}
-
-:deep(.p-card .p-card-title) {
-  font-size: medium;
-}
-
 .forecast-card {
+  height: 18em;
   max-width: 8em;
   display: flex;
   position: sticky;
@@ -121,5 +108,47 @@ p {
 .forecast-card img {
   max-width: 100%;
   height: auto;
+}
+
+p {
+  margin: 0
+}
+
+/* Card style*/
+:deep(.p-card .p-card-body) {
+  padding-bottom: 0;
+  padding-top: 3px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+:deep(.p-card .p-card-title) {
+  font-size: medium;
+  height: 22px;
+}
+
+:deep(.p-card .p-card-subtitle) {
+  height: 125px;
+  margin-bottom: 0;
+  justify-content: flex-start;
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.p-card .p-card-content) {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+@media (max-width: 620px) {
+  .forecast-cards-container {
+    flex-wrap: wrap;
+    border-radius: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
 }
 </style>

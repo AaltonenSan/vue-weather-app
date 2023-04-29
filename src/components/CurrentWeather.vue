@@ -32,19 +32,25 @@ export default defineComponent({
   methods: {
     async fetchWeather(location: LocationCoordinates): Promise<void> {
       try {
-        const response = await fetch(`${this.BASE_URL}/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${this.API_KEY}&units=metric`)
+        const response = await fetch(`${this.BASE_URL}/data/2.5/weather?${location.cityName ? `q= + ${location.cityName}` : `lat=${location.lat}&lon=${location.lon}`}&appid=${this.API_KEY}&units=metric`)
         const data: CurrentWeatherResponse = await response.json()
-        this.currentWeather = data
-        this.$emit('weather-loaded') // emit to Weather that loading is done
-        this.changeBackgroundImage()
-        console.log(data)
+        if (data.weather) {
+          this.currentWeather = data
+          emitter.emit('loading', false)
+          this.changeBackgroundImage()
+        } else {
+          emitter.emit('noWeather', `No forecast found for ${location.cityName}`)
+          emitter.emit('loading', false)
+        }
       } catch (error) {
         console.log(error)
       }
     },
     changeBackgroundImage() {
-      const timeOfDay = this.currentWeather.weather[0].icon[2] === 'd' ? 'day' : 'night'
-      this.$emit('change-time-of-day', timeOfDay)
+      if (this.currentWeather.weather[0].icon[2]) {
+        const timeOfDay = this.currentWeather.weather[0].icon[2] === 'd' ? 'day' : 'night'
+        emitter.emit('timeOfDay', timeOfDay)
+      }
     },
     setLocalTime() {
       const localDate = DateTime.fromSeconds(this.currentWeather.dt, { zone: 'utc' })
@@ -119,7 +125,7 @@ export default defineComponent({
   padding: 0
 }
 
-@media (max-width: 768px) {
+@media (max-width: 820px) {
   .weather-card {
     border-radius: 10px;
   }
