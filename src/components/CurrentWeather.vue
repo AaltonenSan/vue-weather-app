@@ -19,7 +19,7 @@ export default defineComponent({
   },
   data() {
     return {
-      API_KEY: import.meta.env.VITE_API_KEY as string,
+      API_KEY: import.meta.env.VITE_WEATHER_API_KEY as string,
       currentWeather: {} as CurrentWeatherResponse,
       localdate: {
         time: '',

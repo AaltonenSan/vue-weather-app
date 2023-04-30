@@ -19,7 +19,7 @@ export default defineComponent({
   },
   data() {
     return {
-      API_KEY: import.meta.env.VITE_API_KEY as string,
+      API_KEY: import.meta.env.VITE_WEATHER_API_KEY as string,
       TIMEZONE_API_KEY: import.meta.env.VITE_TIMEZONE_API_KEY as string,
       location: null as LocationCoordinates | null,
       city: '',

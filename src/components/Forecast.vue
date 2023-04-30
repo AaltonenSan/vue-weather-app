@@ -24,7 +24,7 @@ export default defineComponent({
   },
   data() {
     return {
-      API_KEY: import.meta.env.VITE_API_KEY as string,
+      API_KEY: import.meta.env.VITE_WEATHER_API_KEY as string,
       forecast: null as ForecastResponse | null,
       forecastLength: '12 hours' as ForecastLength,
       forecastLengthOptions: ['12 hours', '5 days'] as ForecastLength[]
