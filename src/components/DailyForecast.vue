@@ -5,6 +5,7 @@ import type { List } from 'types/ForecastResponse';
 import Card from 'primevue/card';
 import emitter from '../../utils/emitter';
 import { DateTime } from 'luxon';
+import type { ForecastLength } from './Forecast.vue';
 
 export default defineComponent({
   components: {
@@ -17,25 +18,60 @@ export default defineComponent({
   },
   data() {
     return {
-      forecastLength: '12 hours',
+      forecastLength: '12 hours' as ForecastLength,
       timezonename: '',
       TIMEZONE_API_KEY: import.meta.env.VITE_TIMEZONE_API_KEY as string,
-      backgroundcolor: 'blue'
+    }
+  },
+  methods: {
+    getMinAndMaxTemperature(forecastList: List[]) {
+      const maxTemp = Math.max(...forecastList.map(forecast => forecast.main.temp_max))
+      const minTemp = Math.min(...forecastList.map(forecast => forecast.main.temp_min))
+      return [maxTemp, minTemp]
+    },
+    groupForecastsByDate(): List[] {
+      const groupedForecasts = this.forecast!.reduce<{ [key: string]: { dt_txt: string }[] }>((acc, obj) => {
+        const day = obj.dt_txt.split(' ')[0]
+        if (!acc[day]) {
+          acc[day] = []
+        }
+        acc[day].push(obj)
+        return acc
+      }, {})
+
+      /* 
+        Return an array that has one List object for each day
+        Each object has information of 12:00:00 or earliest possible for current day,
+        except temp_min and temp_max which are calcuted from all of the certain day's forecasts
+      */
+      const result: List[] = Object.keys(groupedForecasts).map((day) => {
+        const forecastsForDay = groupedForecasts[day] as List[]
+        const forecastsAt1200 = forecastsForDay.filter(forecast => forecast.dt_txt.endsWith('12:00:00'))
+        const [maxTemp, minTemp] = this.getMinAndMaxTemperature(forecastsForDay)
+        const data = forecastsAt1200[0] || forecastsForDay[0]
+        return {
+          ...data,
+          main: {
+            ...data.main,
+            temp_min: minTemp,
+            temp_max: maxTemp
+          }
+        }
+      })
+      return result
     }
   },
   computed: {
-    // TODO: Compute an average of daily temperatures for 5 days forecast
-    dailyForecast(): List[] {
+    hourlyForecast(): List[] {
       if (!this.forecast || this.timezonename === '') {
         return []
       }
       let days: List[] = [];
-      // get only 5 next 3 hour forecasts
+      // get 5 next 3 hour forecasts
       if (this.forecastLength === '12 hours') {
         days = this.forecast.slice(0, 5)
-      } else { // get current days first one and 12:00 for the rest of days
-        days.push(this.forecast[0])
-        days = days.concat(this.forecast.filter(item => (item.dt_txt.split(' ')[1] === '12:00:00')))
+      } else {
+        days = this.groupForecastsByDate()
         if (days.length > 5) {
           days.pop()
         }
@@ -55,10 +91,10 @@ export default defineComponent({
           localTime: time
         }
       })
-    }
+    },
   },
   created() {
-    emitter.on('forecastLength', e => this.forecastLength = e);
+    emitter.on('forecastLength', e => this.forecastLength = e as ForecastLength);
     emitter.on('timezonename', e => this.timezonename = e);
   },
 })
@@ -66,7 +102,7 @@ export default defineComponent({
 
 <template>
   <div class="forecast-cards-container">
-    <Card class="forecast-card" v-for="forecast in  dailyForecast ">
+    <Card class="forecast-card" v-for="forecast in  hourlyForecast ">
       <template #title>
         {{ forecast.localDay }}
         {{ forecastLength === '12 hours' ? forecast.localTime : null }}
@@ -77,10 +113,14 @@ export default defineComponent({
         {{ forecast.weather[0].description }}
       </template>
       <template #content>
-        <p>Max:</p>
-        <p>Min:</p>
-        <p style="font-weight: bold">{{ forecast.main.temp.toFixed(1) }} °C</p>
-        {{ forecast.wind.speed }} m/s
+        <div v-if="forecastLength === '5 days'">
+          <p>Max: <strong>{{ forecast.main.temp_max.toFixed(1) }}</strong></p>
+          <p>Min: <strong>{{ forecast.main.temp_min.toFixed(1) }}</strong></p>
+        </div>
+        <div v-else>
+          <p style="font-weight: bold">{{ forecast.main.temp.toFixed(1) }} °C</p>
+          <p>{{ forecast.wind.speed }} m/s</p>
+        </div>
       </template>
     </Card>
   </div>

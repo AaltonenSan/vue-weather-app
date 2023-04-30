@@ -8,6 +8,8 @@ import SelectButton from 'primevue/selectbutton';
 import DailyForecast from './DailyForecast.vue';
 import emitter from '../../utils/emitter';
 
+export type ForecastLength = '12 hours' | '5 days'
+
 export default defineComponent({
   components: {
     Card,
@@ -23,18 +25,18 @@ export default defineComponent({
   data() {
     return {
       API_KEY: import.meta.env.VITE_API_KEY as string,
-      BASE_URL: 'https://api.openweathermap.org',
       forecast: null as ForecastResponse | null,
-      forecastLength: '12 hours',
-      forecastLengthOptions: ['12 hours', '5 days']
+      forecastLength: '12 hours' as ForecastLength,
+      forecastLengthOptions: ['12 hours', '5 days'] as ForecastLength[]
     }
   },
   methods: {
     // fetches 5 days forecast with 3 hour intervals
     async fetchForecast(location: LocationCoordinates): Promise<void> {
       try {
-        const response = await fetch(`${this.BASE_URL}/data/2.5/forecast?lat=${location.lat}&lon=${location.lon}&appid=${this.API_KEY}&units=metric&d`)
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${location.lat}&lon=${location.lon}&appid=${this.API_KEY}&units=metric&d`)
         const data = await response.json()
+        console.log(data)
         this.forecast = data
       } catch (error) {
         console.log(error)

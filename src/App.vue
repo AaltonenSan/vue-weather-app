@@ -2,13 +2,14 @@
 import { defineComponent } from 'vue';
 import type { LocationCoordinates, LocationResponse } from '../types/LocationResponse'
 import type { TimezoneDBResponse } from '../types/TimezoneDBResponse'
-import type { TimeOfDay } from '../types/TimeOfDay'
 import Weather from './components/Weather.vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import DAY from './assets/clouds-bg.jpg'
 import NIGHT from './assets/night.jpg'
 import emitter from '../utils/emitter';
+
+type TimeOfDay = 'day' | 'night'
 
 export default defineComponent({
   components: {
@@ -20,7 +21,6 @@ export default defineComponent({
     return {
       API_KEY: import.meta.env.VITE_API_KEY as string,
       TIMEZONE_API_KEY: import.meta.env.VITE_TIMEZONE_API_KEY as string,
-      BASE_URL: 'https://api.openweathermap.org',
       location: null as LocationCoordinates | null,
       city: '',
       message: 'Enable location or search for a city to see weather forecast',
@@ -33,7 +33,7 @@ export default defineComponent({
     async fetchLocation(): Promise<void> {
       this.loading = true
       try {
-        const response = await fetch(`${this.BASE_URL}/geo/1.0/direct?q=${this.city}&limit=1&appid=${this.API_KEY}`)
+        const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${this.city}&limit=1&appid=${this.API_KEY}`)
         const data: LocationResponse[] = await response.json()
 
         if (!data.length) {
@@ -42,41 +42,38 @@ export default defineComponent({
           this.loading = false
           return
         }
-        console.log(data)
+
         this.message = ''
         this.city = ''
         this.location = { lat: data[0].lat, lon: data[0].lon, cityName: data[0].name }
-        this.fetchTimezone()
+        this.fetchTimezone(data[0].lat, data[0].lon)
       } catch (error) {
         console.log(error)
         this.message = 'Error fetching data'
       }
     },
-    async fetchTimezone(): Promise<void> {
+    async fetchTimezone(lat: number, lon: number): Promise<void> {
       try {
-        const response = await fetch(`http://api.timezonedb.com/v2.1/get-time-zone?key=${this.TIMEZONE_API_KEY}&format=json&by=position&lat=${this.location?.lat}&lng=${this.location?.lon}`)
+        const response = await fetch(`http://api.timezonedb.com/v2.1/get-time-zone?key=${this.TIMEZONE_API_KEY}&format=json&by=position&lat=${lat}&lng=${lon}`)
         const data: TimezoneDBResponse = await response.json()
         emitter.emit('timezonename', data.zoneName)
       } catch (error) {
         console.log(error)
       }
     },
-    changeTimeOfDay(timeofDay: TimeOfDay) {
-      this.timeOfDay = timeofDay
-    },
-    getGeoLocation(source?: string) {
+    getGeoLocation(source?: string): void {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
           this.location = { lat: position.coords.latitude, lon: position.coords.longitude }
           this.message = ''
-          this.fetchTimezone()
+          this.fetchTimezone(position.coords.latitude, position.coords.longitude)
         }, (error) => {
           if (error.code === error.PERMISSION_DENIED && source === 'click') {
-            alert(error)
+            alert('Enable location to use this feature')
           }
         })
       } else {
-        this.message = ' Location not available'
+        this.message = 'Location not available'
         console.log('Geolocation not available')
       }
     }
@@ -93,12 +90,8 @@ export default defineComponent({
     this.getGeoLocation()
     emitter.on('noWeather', e => this.message = e)
     emitter.on('loading', e => this.loading = e)
+    emitter.on('timeOfDay', e => this.timeOfDay = e as TimeOfDay)
   },
-  watch: {
-    location: {
-      handler: "fetchTimezone"
-    }
-  }
 })
 </script>
 
@@ -126,7 +119,6 @@ main {
   text-align: center;
   background-size: cover;
   background-position: top;
-  overflow: scroll
 }
 
 .search-bar {

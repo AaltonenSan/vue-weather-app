@@ -20,7 +20,6 @@ export default defineComponent({
   data() {
     return {
       API_KEY: import.meta.env.VITE_API_KEY as string,
-      BASE_URL: 'https://api.openweathermap.org',
       currentWeather: {} as CurrentWeatherResponse,
       localdate: {
         time: '',
@@ -32,7 +31,7 @@ export default defineComponent({
   methods: {
     async fetchWeather(location: LocationCoordinates): Promise<void> {
       try {
-        const response = await fetch(`${this.BASE_URL}/data/2.5/weather?${location.cityName ? `q= + ${location.cityName}` : `lat=${location.lat}&lon=${location.lon}`}&appid=${this.API_KEY}&units=metric`)
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?${location.cityName ? `q= + ${location.cityName}` : `lat=${location.lat}&lon=${location.lon}`}&appid=${this.API_KEY}&units=metric`)
         const data: CurrentWeatherResponse = await response.json()
         if (data.weather) {
           this.currentWeather = data
