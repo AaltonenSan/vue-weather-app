@@ -38,7 +38,7 @@ export default defineComponent({
           emitter.emit('loading', false)
           this.changeBackgroundImage()
         } else {
-          emitter.emit('noWeather', `No forecast found for ${location.cityName}`)
+          emitter.emit('message', `No forecast found for ${location.cityName}`)
           emitter.emit('loading', false)
         }
       } catch (error) {

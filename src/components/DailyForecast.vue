@@ -30,23 +30,29 @@ export default defineComponent({
       return [maxTemp, minTemp]
     },
     groupForecastsByDate(): List[] {
-      const groupedForecasts = this.forecast!.reduce<{ [key: string]: { dt_txt: string }[] }>((acc, obj) => {
-        const day = obj.dt_txt.split(' ')[0]
-        if (!acc[day]) {
-          acc[day] = []
+      // Group forecasts by date to an array of 5 arrays
+      const forecastsByDay: List[][] = []
+
+      for (const forecast of this.forecast!) {
+        const day = forecast.dt_txt.split(' ')[0]
+        const dayIndex = forecastsByDay.findIndex((list) => list[0].dt_txt.startsWith(day));
+        if (dayIndex === -1 && forecastsByDay.length === 5) {
+          break
         }
-        acc[day].push(obj)
-        return acc
-      }, {})
+        else if (dayIndex === -1) {
+          forecastsByDay.push([forecast])
+        } else {
+          forecastsByDay[dayIndex].push(forecast)
+        }
+      }
 
       /* 
         Return an array that has one List object for each day
         Each object has information of 12:00:00 or earliest possible for current day,
         except temp_min and temp_max which are calcuted from all of the certain day's forecasts
       */
-      const result: List[] = Object.keys(groupedForecasts).map((day) => {
-        const forecastsForDay = groupedForecasts[day] as List[]
-        const forecastsAt1200 = forecastsForDay.filter(forecast => forecast.dt_txt.endsWith('12:00:00'))
+      const result: List[] = forecastsByDay.map((forecastsForDay) => {
+        const forecastsAt1200 = forecastsForDay.filter((forecast) => forecast.dt_txt.endsWith('12:00:00'))
         const [maxTemp, minTemp] = this.getMinAndMaxTemperature(forecastsForDay)
         const data = forecastsAt1200[0] || forecastsForDay[0]
         return {
@@ -58,6 +64,7 @@ export default defineComponent({
           }
         }
       })
+
       return result
     }
   },
@@ -66,16 +73,7 @@ export default defineComponent({
       if (!this.forecast || this.timezonename === '') {
         return []
       }
-      let days: List[] = [];
-      // get 5 next 3 hour forecasts
-      if (this.forecastLength === '12 hours') {
-        days = this.forecast.slice(0, 5)
-      } else {
-        days = this.groupForecastsByDate()
-        if (days.length > 5) {
-          days.pop()
-        }
-      }
+      const days: List[] = this.forecastLength === '12 hours' ? this.forecast.slice(0, 5) : this.groupForecastsByDate()
 
       // set the times to represent the local time in the city
       // times are not consistant because the api only provides 3 hour interval for free
@@ -109,7 +107,7 @@ export default defineComponent({
       </template>
       <template #subtitle>
         <img :src="`https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`"
-          :alt="`${forecast.weather[0].description}`">
+          :alt="`${forecast.weather[0].main}`">
         {{ forecast.weather[0].description }}
       </template>
       <template #content>

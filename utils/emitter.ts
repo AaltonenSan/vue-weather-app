@@ -3,7 +3,7 @@ import mitt from 'mitt'
 type Events = {
   timezonename: string;
   forecastLength: string;
-  noWeather: string;
+  message: string;
   loading: boolean;
   timeOfDay: string;
 }

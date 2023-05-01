@@ -25,7 +25,7 @@ export default defineComponent({
   data() {
     return {
       API_KEY: import.meta.env.VITE_WEATHER_API_KEY as string,
-      forecast: null as ForecastResponse | null,
+      forecast: {} as ForecastResponse,
       forecastLength: '12 hours' as ForecastLength,
       forecastLengthOptions: ['12 hours', '5 days'] as ForecastLength[]
     }
@@ -36,7 +36,6 @@ export default defineComponent({
       try {
         const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${location.lat}&lon=${location.lon}&appid=${this.API_KEY}&units=metric&d`)
         const data = await response.json()
-        console.log(data)
         this.forecast = data
       } catch (error) {
         console.log(error)

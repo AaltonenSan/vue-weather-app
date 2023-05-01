@@ -8,6 +8,8 @@ import Button from 'primevue/button';
 import DAY from './assets/clouds-bg.jpg'
 import NIGHT from './assets/night.jpg'
 import emitter from '../utils/emitter';
+import { useStore } from '../store/index'
+import { mapState } from 'pinia'
 
 type TimeOfDay = 'day' | 'night'
 
@@ -21,7 +23,7 @@ export default defineComponent({
     return {
       API_KEY: import.meta.env.VITE_WEATHER_API_KEY as string,
       TIMEZONE_API_KEY: import.meta.env.VITE_TIMEZONE_API_KEY as string,
-      location: null as LocationCoordinates | null,
+      location: {} as LocationCoordinates,
       city: '',
       message: 'Enable location or search for a city to see weather forecast',
       loading: false,
@@ -38,11 +40,9 @@ export default defineComponent({
 
         if (!data.length) {
           this.message = 'City not found'
-          this.location = null
           this.loading = false
           return
         }
-
         this.message = ''
         this.city = ''
         this.location = { lat: data[0].lat, lon: data[0].lon, cityName: data[0].name }
@@ -57,6 +57,7 @@ export default defineComponent({
         const response = await fetch(`http://api.timezonedb.com/v2.1/get-time-zone?key=${this.TIMEZONE_API_KEY}&format=json&by=position&lat=${lat}&lng=${lon}`)
         const data: TimezoneDBResponse = await response.json()
         emitter.emit('timezonename', data.zoneName)
+        console.log(data.zoneName)
       } catch (error) {
         console.log(error)
       }
@@ -88,7 +89,7 @@ export default defineComponent({
   },
   created() {
     this.getGeoLocation()
-    emitter.on('noWeather', e => this.message = e)
+    emitter.on('message', e => this.message = e)
     emitter.on('loading', e => this.loading = e)
     emitter.on('timeOfDay', e => this.timeOfDay = e as TimeOfDay)
   },
