@@ -12,6 +12,7 @@ Projektin päätarkoitus oli parantaa omaa ymmärrystäni Vuesta ja laajentaa yl
  - PrimeVue / PrimeIcons
  - Mitt
  - Luxon
+ - Quicktype.io
 
 ## 2.1 Vue.js
 Valitsin Vuen projektiin, sillä se on suosittu ja laajasti käytetty JavaScript-kehys, johon halusin perehtyä. Tarkemmin sanottuna tämä projekti käyttää Vue3:sta ja Vuen Options APIa.
@@ -33,9 +34,7 @@ Vite on moderni kehitystyökalu ja kehityspalvelin, joka on suunniteltu nopeaksi
 Kuten nykyään lähes kaikissa JavaScript-kehyksissä myös Vuessa voi käyttää TypeScriptiä. Olen aikaisemmissa projekteissa jo todennut TypeScriptin hyödylliseksi, joten käytin myös tässä projektissa TypeScriptiä parantamaan tyyppiturvallisuutta ja helpottamaan kehitystä. TypeScript osaamisen laajentaminen oli myös yksi projektin tavoitteistani.
 
 ## 2.4 Mitt / Tilanhallinta
-Projektin alkuvaiheessa tilanhallinta komponenttien välillä onnistui vielä Vuen omalla $emit metodilla, mutta kun tilaa piti saada muutettua esimerkiksi sisarkomponentissa tai "isovanhemmassa", alkoivat emit-ketjut olemaan jo melko vaikealukuisia. Vuelle löytyy tilanhallintaa varten useampia ratkaisuja kuten VueX tai Pinia. Tässä projektissa hallittavia tiloja on kuitenkin vain muutama, joten päädyin Mittiin.
-
-`Mittin kanssa huomasin yhden ongelman, jonka tilanhallinta kirjasto ratkaisisi. App hakee sijainnin jälkeen aikavyöhykkeen ja emittaa sen DailyForecast ja CurrentWeather komponenteille. Mikäli aikavyöhykkeen haku TimeZoneDB:stä vie enemmän aikaa kuin säätietojen haku komponentit eivät saa aikavyöhyke tietoa, jolloin CurrentWeather renderöidään ilman päivämäärää ja DailyForecast Cardit ei renderöidy ollenkaan. Ajanpuutteen vuoksi tämä jää nyt korjaamatta, mutta on hyvä kehityskohde myöhemmäksi.`
+Projektin alkuvaiheessa tilanhallinta komponenttien välillä onnistui vielä Vuen omalla $emit metodilla, mutta kun tilaa piti saada muutettua esimerkiksi sisarkomponentissa tai "isovanhemmassa", alkoivat emit-ketjut olemaan jo melko vaikealukuisia. Vuelle löytyy tilanhallintaa varten useampia ratkaisuja kuten VueX tai Pinia. VueX:n kehitys taitaa tosin olla jo lopetettu ja Pinia on Vuen virallinen tilanhallinta kirjasto. Tässä projektissa hallittavia tiloja on kuitenkin vain muutama, joten päädyin Mittiin.
 
 Mitt eroaa edellä mainituista muista ratkaisuista siinä, että se ei ole tilanhallinta kirjasto, vaan event emitter. Muuttuja määritetään normaalisti komponentin data optiossa ja sitä voidaan Mittin avulla muuttaa muualta sovelluksesta emittoimalla sille uusi arvo. VueX ja Pinia tallettavat muuttujien tilat storeen, josta ne Options APIn tapauksessa haettaisiin computed option alle.
 
@@ -92,6 +91,8 @@ Halusin saada nykyisen säätilan yhteyteen sen hetkisen kellonajan valitussa ka
 
 Luxonin avulla Unix kellonaikojen muuntaminen paikallisiin aikoihin vaati kuitenkin aikavyöhykkeen nimen. Aikavyöhykkeiden selvittämiseksi löytyy TimezoneDB API, josta voi hakea koordinaattien perusteella aikavyöhykkeen. Luxonilla ajasta luodaan DateTime olio Unix sekunneista UTC ajassa ja sen jälkeen sille asetetaan haettu aikavyöhyke. Luxon on siitä hieno, että se osaa hoitaa myös kesä- ja talviajat.
 
+## 2.7 Quicktype.io
+Avoimen lähdekoodin työkalu, jonka avulla JSON-muotoisden datan voi helposti muuntaa TypeScript-tyypeiksi. Varsin hyödyllinen kun API:sta haetussa datassa on monta kenttää.
 
 # 3. Yhteenveto
 ## 3.1 Sovellus
@@ -107,3 +108,6 @@ OpenWeatherMap API tarjoaa ennusteiden lisäksi sääikonit, jonka nimi on API v
 Aluksi Vuen SFC-tiedostot ja Options API tuntuivat monimutkaisilta useine objekteineen, mutta niiden käytön myötä ne alkoivat tuntua loogisemmilta. Options API:n tapa levittää asioita eri objekteihin on tavallaan selkeää, mutta toisaalta se myös teki koodin lukemisesta välillä haastavaa.
 
 Vaikka projektin tavoitteena ei ollutkaan vertailla Options API:a ja Composition API:a keskenään, huomasin tietoa etsiessäni ja dokumentaatiota lukiessani, että Composition API uudempana teknologiana tarjoaa tehokkaammat ja suositeltavammat työkalut Vuen käyttöön. Seuraava asia johon haluan syventyä Vuessa, onkin juuri Composition API, jonka avulla olisin voinut ratkaista helpommin esimerkiksi tilanhallintaan liittyviä ongelmia. 
+
+## 3.3 Jatkokehitys
+Mittin kanssa huomasin yhden ongelman, jonka tilanhallinta kirjasto ratkaisisi. App hakee sijainnin jälkeen aikavyöhykkeen ja emittaa sen DailyForecast ja CurrentWeather komponenteille. Mikäli aikavyöhykkeen haku TimeZoneDB:stä vie enemmän aikaa kuin säätietojen haku komponentit eivät saa aikavyöhyke tietoa, jolloin CurrentWeather renderöidään ilman päivämäärää ja DailyForecast Cardit ei renderöidy ollenkaan. Ajanpuutteen vuoksi tämä jää nyt korjaamatta, mutta on hyvä kehityskohde myöhemmäksi. Paras ratkaisu olisi muuttaa koodia Composition API tyyliseksi ja ottaa käyttöön Pinia.
