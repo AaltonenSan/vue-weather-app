@@ -25,13 +25,13 @@ Application uses [OpenWeatherMapAPI](https://openweathermap.org/api) to get coor
 ### Clone project
 
 ```sh
-$ git clone https://github.com/AaltonenSan/vue-weather-app.git
+git clone https://github.com/AaltonenSan/vue-weather-app.git
 ```
 
 ### Create environment variables
 
 ```sh
-$ touch .env.local
+touch .env.local
 
 Inside .env.local add following environment variables: 'VITE_WEATHER_API_KEY' and 'VITE_TIMEZONE_API_KEY'
 You need to register to both APIs to get your own API keys
