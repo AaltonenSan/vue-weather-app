@@ -8,8 +8,6 @@ import Button from 'primevue/button';
 import DAY from './assets/clouds-bg.jpg'
 import NIGHT from './assets/night.jpg'
 import emitter from '../utils/emitter';
-import { useStore } from '../store/index'
-import { mapState } from 'pinia'
 
 type TimeOfDay = 'day' | 'night'
 
@@ -57,7 +55,6 @@ export default defineComponent({
         const response = await fetch(`http://api.timezonedb.com/v2.1/get-time-zone?key=${this.TIMEZONE_API_KEY}&format=json&by=position&lat=${lat}&lng=${lon}`)
         const data: TimezoneDBResponse = await response.json()
         emitter.emit('timezonename', data.zoneName)
-        console.log(data.zoneName)
       } catch (error) {
         console.log(error)
       }

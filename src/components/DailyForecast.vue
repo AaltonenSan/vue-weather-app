@@ -94,7 +94,7 @@ export default defineComponent({
   created() {
     emitter.on('forecastLength', e => this.forecastLength = e as ForecastLength);
     emitter.on('timezonename', e => this.timezonename = e);
-  },
+  }
 })
 </script>
 

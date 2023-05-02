@@ -2,7 +2,7 @@
 
 Web application that shows current weather and 12 hour / 5 days forecast for selected city.
 
-Application uses [OpenWeatherMapAPI](https://openweathermap.org/api) to get coordinates for a searched city, as well as weather data for that city. Additionally, it uses [TimeZoneDB](https://timezonedb.com/api) to get current and forecasted date and time for the searched city in its respective timezone.
+Application uses [OpenWeatherMapAPI](https://openweathermap.org/api) to get coordinates for a searched city, as well as weather data for that city and weather icons. Additionally, it uses [TimeZoneDB](https://timezonedb.com/api) to get current and forecasted date and time for the searched city in its respective timezone.
 
 ![Sample picture of the application](images/weatherapp.png)
 

@@ -52,11 +52,17 @@ export default defineComponent({
       }
     },
     setLocalTime() {
-      const localDate = DateTime.fromSeconds(this.currentWeather.dt, { zone: 'utc' })
-      const localDay = localDate.setZone(this.timezonename).toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)
-      const localTime = localDate.setZone(this.timezonename).toLocaleString(DateTime.TIME_24_WITH_SECONDS)
-      this.localdate.day = localDay
-      this.localdate.time = localTime
+      if (this.timezonename === '') {
+        setTimeout(() => {
+          this.setLocalTime()
+        }, 100)
+      } else {
+        const localDate = DateTime.fromSeconds(this.currentWeather.dt, { zone: 'utc' })
+        const localDay = localDate.setZone(this.timezonename).toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)
+        const localTime = localDate.setZone(this.timezonename).toLocaleString(DateTime.TIME_24_WITH_SECONDS)
+        this.localdate.day = localDay
+        this.localdate.time = localTime
+      }
     }
   },
   watch: {

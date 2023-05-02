@@ -27,7 +27,7 @@ Tässä projektissa halusin käyttää Options APIa, sillä se on hieman helpomp
 ## 2.2 Vite
 Uuden Vue sovelluksen alustaminen tapahtuu ``npm init vue@latest`` komennolla, joka luo perustan sovellukselle Viteä käyttäen.
 
-Vite on moderni kehitystyökalu ja kehityspalvelin, joka on suunniteltu nopeaksi ja tehokkaaksi web-sovellusten kehittämistä varten. Se on kehitetty käyttämään uusimpia web-teknologioita, kuten ES modules ja hot module replacement (HMR), joiden avulla kehittäjät voivat nopeasti rakentaa ja testata sovelluksiaan.
+Vite on moderni kehitystyökalu ja kehityspalvelin, joka on suunniteltu nopeaksi ja tehokkaaksi web-sovellusten kehittämistä varten. Se on kehitetty käyttämään uusimpia web-teknologioita, kuten ES moduuleja ja hot module replacement (HMR), joiden avulla kehittäjät voivat nopeasti rakentaa ja testata sovelluksiaan.
 
 ## 2.3 TypeScript
 Kuten nykyään lähes kaikissa JavaScript-kehyksissä myös Vuessa voi käyttää TypeScriptiä. Olen aikaisemmissa projekteissa jo todennut TypeScriptin hyödylliseksi, joten käytin myös tässä projektissa TypeScriptiä parantamaan tyyppiturvallisuutta ja helpottamaan kehitystä. TypeScript osaamisen laajentaminen oli myös yksi projektin tavoitteistani.
@@ -37,7 +37,7 @@ Projektin alkuvaiheessa tilanhallinta komponenttien välillä onnistui vielä Vu
 
 `Mittin kanssa huomasin yhden ongelman, jonka tilanhallinta kirjasto ratkaisisi. App hakee sijainnin jälkeen aikavyöhykkeen ja emittaa sen DailyForecast ja CurrentWeather komponenteille. Mikäli aikavyöhykkeen haku TimeZoneDB:stä vie enemmän aikaa kuin säätietojen haku komponentit eivät saa aikavyöhyke tietoa, jolloin CurrentWeather renderöidään ilman päivämäärää ja DailyForecast Cardit ei renderöidy ollenkaan. Ajanpuutteen vuoksi tämä jää nyt korjaamatta, mutta on hyvä kehityskohde myöhemmäksi.`
 
-Mitt eroaa edellä mainituista muista ratkaisuista siinä, että se ei ole tilanhallinta kirjasto, vaan event emitter. Muuttuja määritetään normaalisti komponentin data optiossa ja sitä voidaan Mittin avulla muuttaa muualta sovelluksesta emittoimalla sille uusi arvo. VueX ja Pinia tallettavat muuttujien tilat globaaliin "storeen", josta ne Options APIn tapauksessa haettaisiin computed option alle.
+Mitt eroaa edellä mainituista muista ratkaisuista siinä, että se ei ole tilanhallinta kirjasto, vaan event emitter. Muuttuja määritetään normaalisti komponentin data optiossa ja sitä voidaan Mittin avulla muuttaa muualta sovelluksesta emittoimalla sille uusi arvo. VueX ja Pinia tallettavat muuttujien tilat storeen, josta ne Options APIn tapauksessa haettaisiin computed option alle.
 
 Mittin käyttöönotto on nopeaa ja helppoa. TypeScriptiä käytettäessä luodaan tiedosto, jossa Mittillä hoidettavat tilan muutokset tyypitetään ja sen jälkeen vain exportataan emitter. Huomioitavaa on, että Mittissä tyypitetyt tilan muutokset eivät tyypitä itse muuttujaa vaan ainoastaan emitterin välityksellä välitettävän viestin. Käyttöä varten emitter importataan tiedostoon, jossa sitä halutaan hyödyntää. Käyttö onnistuu esimerkiksi seuraavalla tavalla:
 
@@ -92,6 +92,18 @@ Halusin saada nykyisen säätilan yhteyteen sen hetkisen kellonajan valitussa ka
 
 Luxonin avulla Unix kellonaikojen muuntaminen paikallisiin aikoihin vaati kuitenkin aikavyöhykkeen nimen. Aikavyöhykkeiden selvittämiseksi löytyy TimezoneDB API, josta voi hakea koordinaattien perusteella aikavyöhykkeen. Luxonilla ajasta luodaan DateTime olio Unix sekunneista UTC ajassa ja sen jälkeen sille asetetaan haettu aikavyöhyke. Luxon on siitä hieno, että se osaa hoitaa myös kesä- ja talviajat.
 
-OpenWeatherMap API tarjoaa ilmaiseksi vain 3 tunnin väliajoilla olevan ennusteen Tästä syystä 12 tunnin ennusteessa kellonajat harmillisesti muuttuvat eri aikavyöhykkeiden välillä.
 
 # 3. Yhteenveto
+## 3.1 Sovellus
+Sain valmiiksi web-sovelluksen käyttäen Vue3:sta projektin tavoitteiden mukaisesti ja aikataulussa. Sovellus yrittää avatessa hakea käyttäjän sen hetkisen sijainnin säätiedot, mikäli sijaintitiedot ovat päällä ja sallittu. Käyttäjä voi syöttää hakukenttään kaupungin nimen, jolloin sovellus hakee kyseisen kaupungin sijannin ja sen avulla nykyisen säätilan, sääennusteen sekä aikavyöhykkeen. Hakukentän karttamerkkiä painamalla voi myös hakea nykyisen sijannin säätiedot manuaalisesti.
+
+Säätietojen haun jälkeen sovellus näyttää kaupungin nykyisen säätilan ja päivämäärän kyseisen kaupungin paikallisena aikana. Samoin sääennusteen ajat ovat kyseisen kaupungin paikallisessa ajassa. OpenWeatherMap API tarjoaa ilmaiseksi vain 3 tunnin väliajoilla olevan ennusteen nykyhetkestä eteenpäin. Tästä syystä 12 tunnin ennusteessa kellonajat harmillisesti muuttuvat eri aikavyöhykkeiden välillä ja 5 päivän ennusteessa nykyisen päivän ylin ja alin lämpötila on koottu päivän jäljellä olevista ennusteista.
+
+12 tunnin ennusteessa näytetään viisi ensimmäistä API:n antamaa ennustetta. 5 päivän ennusteessa ennusteet on koottu päivämäärän mukaan ja ylin ja alin lämpötila on haettu päivän kaikista ennusteista. Ikoni ja kuvaus tulevat kello 12:00 tai nykypäivässä vanhimman ennusteen mukaan.
+
+OpenWeatherMap API tarjoaa ennusteiden lisäksi sääikonit, jonka nimi on API vastauksessa. Ikonien nimet loppuvat joko 'd' tai 'n' kirjaimeen, jonka avulla sovelluksen taustakuva muuttuu riippuen onko haetussa kaupungissa yö vai päivä.
+
+## 3.2 Vue
+Aluksi Vuen SFC-tiedostot ja Options API tuntuivat monimutkaisilta useine objekteineen, mutta niiden käytön myötä ne alkoivat tuntua loogisemmilta. Options API:n tapa levittää asioita eri objekteihin on tavallaan selkeää, mutta toisaalta se myös teki koodin lukemisesta välillä haastavaa.
+
+Vaikka projektin tavoitteena ei ollutkaan vertailla Options API:a ja Composition API:a keskenään, huomasin tietoa etsiessäni ja dokumentaatiota lukiessani, että Composition API uudempana teknologiana tarjoaa tehokkaammat ja suositeltavammat työkalut Vuen käyttöön. Seuraava asia johon haluan syventyä Vuessa, onkin juuri Composition API, jonka avulla olisin voinut ratkaista helpommin esimerkiksi tilanhallintaan liittyviä ongelmia. 
