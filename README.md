@@ -19,8 +19,6 @@ Application uses [OpenWeatherMapAPI](https://openweathermap.org/api) to get coor
 | [Luxon](https://moment.github.io/luxon/#/) | Date and time library |
 
 
-#### More detailed report of the project in Finnish: [Seminaariraportti](seminaariraportti.md)
-
 ## Getting started
 ### Clone project
 
